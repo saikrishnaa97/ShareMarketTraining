@@ -162,7 +162,7 @@ class Rest_client():
                 response_data.append(temp)
         else:
             response_data = {"reason": "Could not fetch top gainers"}
-        self.top_changes["gainers"] = response_data
+        self.topChanges["gainers"] = response_data
     
     def getTopLosers(self):
         self.headers['Host'] = 'api.bseindia.com'
@@ -182,7 +182,7 @@ class Rest_client():
                 response_data.append(temp)
         else:
             response_data = {"reason": "Could not fetch top losers"}
-        self.top_changes["losers"] = response_data
+        self.topChanges["losers"] = response_data
     
     def getTopChangers(self):
         t1 = threading.Thread(target=self.getTopLosers)
@@ -191,7 +191,7 @@ class Rest_client():
         t2.start()
         t1.join()
         t2.join()
-        return self.top_changes
+        return self.topChanges
         
         
         
