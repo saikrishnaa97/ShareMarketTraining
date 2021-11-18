@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: share-market-training
+spec:
+  selector:
+    matchLabels:
+      app: share-market-training
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: share-market-training
+    spec:
+      containers:
+      - name: share-market-training
+        image: "registry.cloud.okteto.net/saikrishnaa97/sharemarkettraining:latest"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8001
+          name: http2
+      restartPolicy: Always
