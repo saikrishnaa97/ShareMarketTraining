@@ -162,7 +162,7 @@ class Rest_client():
             response_data = {"reason": "Could not fetch top gainers"}
         self.top_changes["gainers"] = response_data
     
-     def getTopLosers(self):
+    def getTopLosers(self):
         self.headers['Host'] = 'api.bseindia.com'
         response = requests.get(self.top_losers_url, timeout=5, headers=self.headers)
         response_data = []
