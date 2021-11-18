@@ -111,6 +111,7 @@ class Rest_client():
 
     def reload(self):
         try:
+            os.system("yum install dos2unix -y; dos2unix /opt/ShareMarketTraining/rest_client/reload.sh")
             os.system("sh /opt/ShareMarketTraining/rest_client/reload.sh")
             return {"status":"Success"}
         except Exception as e:
