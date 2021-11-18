@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 import json
 from ShareMarketTraining.rest_client.rest_client import Rest_client
-from ShareMarketTraining.FirebaseClient import FirebaseClient
+#from ShareMarketTraining.FirebaseClient import FirebaseClient
 
 def nse(request):
     resp = Rest_client().get_nse_live()
@@ -23,9 +23,9 @@ def searchByName(request, queryString):
     resp = Rest_client().searchByName(queryString)
     return HttpResponse(json.dumps(resp))
 
-def getUsers(request):
-    resp = FirebaseClient().getUsers()
-    return HttpResponse(json.dumps(resp))
+# def getUsers(request):
+#     resp = FirebaseClient().getUsers()
+#     return HttpResponse(json.dumps(resp))
 
 # def getUserByName(request, userName):
 #     resp = FirebaseClient().getUserByName(userName)
