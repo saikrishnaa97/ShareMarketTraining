@@ -1,0 +1,6 @@
+icon: https://avatars.githubusercontent.com/u/15671549?v=4
+deploy:
+  - okteto build -t registry.cloud.okteto.net/saikrishnaa97/sharemarkettraining:latest -f Dockerfile .
+  - kubectl apply -f deploy.yaml -n saikrishnaa97
+  - kubectl apply -f svc.yaml -n saikrishnaa97
+  - kubectl apply -f ingress.yaml -n saikrishnaa97

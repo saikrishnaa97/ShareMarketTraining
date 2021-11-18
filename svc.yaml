@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Service
+apiVersion: v1
+metadata:
+  annotations:
+    dev.okteto.com/auto-ingress: "true"
+  name: "sharemarkettraining"
+spec:
+  selector:
+    app: "share-market-training"
+  ports:
+  - protocol: TCP
+    port: 8001
+    targetPort: 8001
+    name: http2

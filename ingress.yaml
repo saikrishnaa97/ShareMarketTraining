@@ -1,0 +1,13 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    dev.okteto.com/generate-host: "true"
+  name: share-market-training
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: sharemarkettraining
+          servicePort: 8000
