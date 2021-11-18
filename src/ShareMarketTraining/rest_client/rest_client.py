@@ -149,6 +149,7 @@ class Rest_client():
         response_data = []
         if response.status_code == 200:
             json_data = h2j.convert(response.content)
+            json_data = json.loads(json_data["_value"])
             for i in json_data["Table"]:
                 temp = {}
                 temp["symbol"] = i["ScripName"]
@@ -168,6 +169,7 @@ class Rest_client():
         response_data = []
         if response.status_code == 200:
             json_data = h2j.convert(response.content)
+            json_data = json.loads(json_data["_value"])
             for i in json_data["Table"]:
                 temp = {}
                 temp["symbol"] = i["ScripName"]
@@ -182,8 +184,8 @@ class Rest_client():
         self.top_changes["losers"] = response_data
     
     def getTopChangers(self):
-        t1 = threading.Thread(target=getTopLosers)
-        t2 = threading.Thread(target=getTopGainers)
+        t1 = threading.Thread(target=self.getTopLosers)
+        t2 = threading.Thread(target=self.getTopGainers)
         t1.start()
         t2.start()
         t1.join()
