@@ -24,6 +24,7 @@ class Rest_client():
         self.top_losers_url = "https://api.bseindia.com/BseIndiaAPI/api/HoTurnover/w?flag=L"
         self.NIFTY_INDEX_NAME = "NIFTY 50"
         self.topChanges = {}
+        self.live_indices = {}
 
     def get_nse_live(self):
         self.headers['Host'] = 'www1.nseindia.com'
@@ -35,6 +36,7 @@ class Rest_client():
                     response_data.pop('imgFileName')
         else:
             response_data = {"reason": "Could not fetch nse_data"}
+        self.live_indices["NSE"] = response_data
         return response_data
 
     def get_bse_live(self):
@@ -44,13 +46,18 @@ class Rest_client():
             response_data = json.loads(response.content)[0]
         else:
             response_data = {"reason": "Could not fetch bse_data"}
+        self.live_indices["BSE"] = response_data
         return response_data
 
     def get_full_market_status(self):
-        nse_resp = self.get_nse_live()
-        bse_resp = self.get_bse_live()
-        response = {"NSE NIFTY 50" : str(nse_resp['lastPrice']), "BSE SENSEX" : str(bse_resp['ltp'])}
-        return response
+        t1 = threading.Thread(target=self.get_nse_live)
+        t2 = threading.Thread(target=self.get_bse_live)
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+        # response = {"NSE NIFTY 50" : str(nse_resp['lastPrice']), "BSE SENSEX" : str(bse_resp['ltp'])}
+        return self.live_indices
 
     def get_nse_stock_status(self,stockName):
         self.headers['Host'] = 'www.nseindia.com'
@@ -162,7 +169,7 @@ class Rest_client():
             response_data = {"reason": "Could not fetch top gainers"}
         self.top_changes["gainers"] = response_data
     
-     def getTopLosers(self):
+    def getTopLosers(self):
         self.headers['Host'] = 'api.bseindia.com'
         response = requests.get(self.top_losers_url, timeout=5, headers=self.headers)
         response_data = []
@@ -182,8 +189,8 @@ class Rest_client():
         self.top_changes["losers"] = response_data
     
     def getTopChangers(self):
-        t1 = threading.Thread(target=getTopLosers)
-        t2 = threading.Thread(target=getTopGainers)
+        t1 = threading.Thread(target=self.getTopLosers)
+        t2 = threading.Thread(target=self.getTopGainers)
         t1.start()
         t2.start()
         t1.join()
