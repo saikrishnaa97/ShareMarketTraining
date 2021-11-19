@@ -12,6 +12,6 @@ class KubernetesClient():
         secret1 = base64.b64decode(secret_encoded.data['sa.txt'])
         secret_decoded = base64.b64decode(secret1).decode('utf-8')
         secret_decoded = secret_decoded.replace('\n', '')
-        f = open("/opt/ShareMarketTraining/rest_client/fbSA.json","a")
+        f = open("/opt/ShareMarketTraining/rest_client/fbSA.json","w")
         f.write(secret_decoded)
         f.close()

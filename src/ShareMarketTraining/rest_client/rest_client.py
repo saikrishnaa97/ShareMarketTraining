@@ -156,6 +156,7 @@ class Rest_client():
         response_data = []
         if response.status_code == 200:
             json_data = h2j.convert(response.content)
+            json_data = json.loads(json_data['_value'])
             for i in json_data["Table"]:
                 temp = {}
                 temp["symbol"] = i["ScripName"]
@@ -175,6 +176,7 @@ class Rest_client():
         response_data = []
         if response.status_code == 200:
             json_data = h2j.convert(response.content)
+            json_data = json.loads(json_data['_value'])
             for i in json_data["Table"]:
                 temp = {}
                 temp["symbol"] = i["ScripName"]
