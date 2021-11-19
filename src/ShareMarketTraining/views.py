@@ -27,8 +27,8 @@ def getUsers(request):
     resp = FirebaseClient().getUsers()
     return HttpResponse(json.dumps(resp))
 
-def getTrades(request):
-    return HttpResponse(json.dumps(FirebaseClient().getTrades()))
+def getTrades(request, uid):
+    return HttpResponse(json.dumps(FirebaseClient().getTradeByUserId(uid)))
 
 def reload(request):
     return HttpResponse(json.dumps(Rest_client().reload()))

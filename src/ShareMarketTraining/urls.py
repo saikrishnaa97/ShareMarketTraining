@@ -25,6 +25,7 @@ urlpatterns = [
     path('reload/', views.reload),
     path("topChangers/",views.getTopChangers),
     path('users/', views.getUsers),
+    path('trades/<str:uid>', views.getTrades),
 #     path('user/<str:userName>', views.getUserByName),
     path('stockStatus/<str:stockName>/', views.stockStatus),
     path('search/<str:queryString>/', views.searchByName),
