@@ -27,7 +27,7 @@ class FirebaseClient():
             existing.update(tradeData)
             response = {"status":"success"}
         except Exception as e:
-            response = {"status":"And Exception occured "+str(e)}
+            response = {"status":"And Exception occurred "+str(e)}
         return response
 
     def buyShares(self, tradeData):
@@ -55,7 +55,7 @@ class FirebaseClient():
             response = tradeData
             response["status"]="Successfully bought"
         except Exception as e:
-            response = {"status": "Exception occured " + str(e)}
+            response = {"status": "Exception occurred " + str(e)}
         return response
 
     def sellShares(self, tradeData):
@@ -88,7 +88,7 @@ class FirebaseClient():
             response = tradeData
             response["status"]="Successfully sold"
         except Exception as e:
-            response = {"status": "Exception occured " + str(e)}
+            response = {"status": "Exception occurred " + str(e)}
         return response
 
     def updateIndices(self):
@@ -99,5 +99,5 @@ class FirebaseClient():
             self.indices_ref.update({'NIFTY 50':nse, "SENSEX":bse})
             response = {"status":"Success"}
         except Exception as e:
-            response = {"status": "Exception occured " + str(e)}
+            response = {"status": "Exception occurred " + str(e)}
         return response
