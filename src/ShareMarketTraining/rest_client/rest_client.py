@@ -198,6 +198,3 @@ class Rest_client():
         t1.join()
         t2.join()
         return self.topChanges
-        
-        
-        

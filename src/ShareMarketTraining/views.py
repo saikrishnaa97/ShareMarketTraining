@@ -2,6 +2,8 @@ from django.http import HttpResponse
 import json
 from ShareMarketTraining.rest_client.rest_client import Rest_client
 from ShareMarketTraining.FirebaseClient import FirebaseClient
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 
 def nse(request):
     resp = Rest_client().get_nse_live()
@@ -35,3 +37,13 @@ def reload(request):
 
 def getTopChangers(request):
     return HttpResponse(json.dumps(Rest_client().getTopChangers()))
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def buyShares(request):
+    resp = FirebaseClient().buyShares(json.loads(request.read()))
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def sellShares(request):
+    resp = FirebaseClient().sellShares(json.loads(request.read()))

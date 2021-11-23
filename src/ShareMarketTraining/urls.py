@@ -26,7 +26,8 @@ urlpatterns = [
     path("topChangers/",views.getTopChangers),
     path('users/', views.getUsers),
     path('trades/<str:uid>/', views.getTrades),
-#     path('user/<str:userName>', views.getUserByName),
+    path('buy/',views.buyShares),
+    path('sell/',views.sellShares),
     path('stockStatus/<str:stockName>/', views.stockStatus),
     path('search/<str:queryString>/', views.searchByName),
 ]
