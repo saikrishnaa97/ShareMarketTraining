@@ -43,8 +43,17 @@ class FirebaseClient():
                 tradeData['purchasedAt'] = float(stockStatus['BSE']['price_info']['LTP'])
             else:
                 tradeData['purchasedAt'] = float(stockStatus['NSE']['price_info']['lastPrice'])
-            self.trade_ref.child(userId).push({uid:tradeData})
-            response = {"status":"Successfully bought"}
+            userData = self.user_ref.child(userId).get()
+            totalAmount = tradeData['purchasedAt']*tradeData['numOfShares']
+            if float(userData['availableBalance']) < float(totalAmount):
+                response = {"error":"Not enough balance available to buy shares"}
+                return response
+            else:
+                userData['availableBalance'] = float(userData['availableBalance'] - totalAmount)
+                self.user_ref.child(userId).update(userData)
+            self.trade_ref.child(userId).child(uid).update(tradeData)
+            response = tradeData
+            response["status"]="Successfully bought"
         except Exception as e:
             response = {"status": "Exception occured " + str(e)}
         return response
@@ -55,12 +64,29 @@ class FirebaseClient():
             tradeData.pop('userId')
             tradeData["status"] = "SOLD"
             stockStatus = Rest_client().get_stock_status(tradeData["stockSymbol"])
+            curTrade = self.trade_ref.child(userId).child(tradeData['uid']).get()
+            if curTrade['status'] == "SOLD":
+                response = {"error": "These shares are already sold"}
+                return response
+            if curTrade['numOfShares'] > tradeData['numOfShares']:
+                curTrade['numOfShares'] = curTrade['numOfShares'] - tradeData['numOfShares']
+                self.trade_ref.child(userId).child(tradeData['uid']).update(curTrade)
+                tradeData['uid'] = str(uuid.uuid4())
+                tradeData['purchasedAt'] = curTrade['purchasedAt']
+            elif curTrade['numOfShares'] < tradeData['numOfShares']:
+                response = {"error": "Only "+str(curTrade['numOfShares'])+" shares left to sell"}
+                return response
             if float(stockStatus['NSE']['price_info']['lastPrice']) > float(stockStatus['BSE']['price_info']['LTP']):
-                tradeData['purchasedAt'] = float(stockStatus['BSE']['price_info']['LTP'])
+                tradeData['soldAt'] = float(stockStatus['BSE']['price_info']['LTP'])
             else:
-                tradeData['purchasedAt'] = float(stockStatus['NSE']['price_info']['lastPrice'])
+                tradeData['soldAt'] = float(stockStatus['NSE']['price_info']['lastPrice'])
             self.trade_ref.child(userId).child(tradeData['uid']).update(tradeData)
-            response = {"status":"Successfully sold"}
+            userData = self.user_ref.child(userId).get()
+            totalAmount = tradeData['soldAt'] * tradeData['numOfShares']
+            userData['availableBalance'] = float(userData['availableBalance'] + totalAmount)
+            self.user_ref.child(userId).update(userData)
+            response = tradeData
+            response["status"]="Successfully sold"
         except Exception as e:
             response = {"status": "Exception occured " + str(e)}
         return response
