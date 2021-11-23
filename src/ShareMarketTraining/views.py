@@ -41,9 +41,9 @@ def getTopChangers(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def buyShares(request):
-    resp = FirebaseClient().buyShares(json.loads(request.read()))
+    resp = HttpResponse(FirebaseClient().buyShares(json.loads(request.read())))
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def sellShares(request):
-    resp = FirebaseClient().sellShares(json.loads(request.read()))
+    resp = HttpResponse(FirebaseClient().sellShares(json.loads(request.read())))
