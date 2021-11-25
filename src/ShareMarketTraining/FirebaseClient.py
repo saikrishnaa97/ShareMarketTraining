@@ -19,7 +19,26 @@ class FirebaseClient():
         return self.user_ref.get()
 
     def getTradeByUserId(self, uid):
-        return self.trade_ref.get().get(uid)
+        response = {}
+        trades = self.trade_ref.get().get(uid)
+        response['tradedValue'] = 0.00
+        response['availableBalance'] = 300000.00
+        for i in trades.keys():
+            if trades[i]['status'] == "HOLDING":
+                stockStatus = Rest_client().get_stock_status(trades[i]['stockSymbol'])
+                if float(stockStatus['NSE']['price_info']['lastPrice']) > float(stockStatus['BSE']['price_info']['LTP']):
+                    trades[i]['currentPrice'] = float(stockStatus['BSE']['price_info']['LTP'])
+                else:
+                    trades[i]['currentPrice'] = float(stockStatus['NSE']['price_info']['lastPrice'])
+                trades[i]['P/L'] = (trades[i]['currentPrice'] - trades[i]['purchasedAt']) * trades[i]['numOfShares']
+                response['tradedValue'] = response['tradedValue'] + (trades[i]['purchasedAt'] * trades[i]['numOfShares'])
+            else:
+                trades[i]['P/L'] = (trades[i]['soldAt']-trades[i]['purchasedAt'])*trades[i]['numOfShares']
+                response['availableBalance'] = response['availableBalance'] + ((trades[i]['soldAt']-trades[i]['purchasedAt'])*trades[i]['numOfShares'])
+        response['trades'] = trades
+        response['availableBalance'] = response['availableBalance'] - response['tradedValue']
+        self.user_ref.child(uid).update({'availableBalance':response['availableBalance']})
+        return response
 
     def updateTrade(self,tradeData):
         try:
