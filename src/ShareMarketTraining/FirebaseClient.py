@@ -31,6 +31,7 @@ class FirebaseClient():
                 elif trades[i]['exchange'] == "NSE":
                     trades[i]['currentPrice'] = float(stockStatus['NSE']['price_info']['lastPrice'])
                 trades[i]['P/L'] = (trades[i]['currentPrice'] - trades[i]['purchasedAt']) * trades[i]['numOfShares']
+                trades[i].pop('soldAt')
                 response['tradedValue'] = response['tradedValue'] + (trades[i]['purchasedAt'] * trades[i]['numOfShares'])
             else:
                 trades[i]['P/L'] = (trades[i]['soldAt']-trades[i]['purchasedAt'])*trades[i]['numOfShares']
