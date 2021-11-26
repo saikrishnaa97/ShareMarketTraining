@@ -26,9 +26,9 @@ class FirebaseClient():
         for i in trades.keys():
             if trades[i]['status'] == "HOLDING":
                 stockStatus = Rest_client().get_stock_status(trades[i]['stockSymbol'])
-                if float(stockStatus['NSE']['price_info']['lastPrice']) > float(stockStatus['BSE']['price_info']['LTP']):
+                if trades[i]['exchange'] == "BSE":
                     trades[i]['currentPrice'] = float(stockStatus['BSE']['price_info']['LTP'])
-                else:
+                elif trades[i]['exchange'] == "NSE":
                     trades[i]['currentPrice'] = float(stockStatus['NSE']['price_info']['lastPrice'])
                 trades[i]['P/L'] = (trades[i]['currentPrice'] - trades[i]['purchasedAt']) * trades[i]['numOfShares']
                 response['tradedValue'] = response['tradedValue'] + (trades[i]['purchasedAt'] * trades[i]['numOfShares'])
@@ -58,9 +58,9 @@ class FirebaseClient():
             tradeData['soldAt'] = -1
             tradeData["status"] = "HOLDING"
             stockStatus = Rest_client().get_stock_status(tradeData["stockSymbol"])
-            if float(stockStatus['NSE']['price_info']['lastPrice']) > float(stockStatus['BSE']['price_info']['LTP']):
+            if trades[i]['exchange'] == "BSE":
                 tradeData['purchasedAt'] = float(stockStatus['BSE']['price_info']['LTP'])
-            else:
+            elif trades[i]['exchange'] == "NSE":
                 tradeData['purchasedAt'] = float(stockStatus['NSE']['price_info']['lastPrice'])
             userData = self.user_ref.child(userId).get()
             totalAmount = tradeData['purchasedAt']*tradeData['numOfShares']
@@ -95,9 +95,9 @@ class FirebaseClient():
             elif curTrade['numOfShares'] < tradeData['numOfShares']:
                 response = {"error": "Only "+str(curTrade['numOfShares'])+" shares left to sell"}
                 return response
-            if float(stockStatus['NSE']['price_info']['lastPrice']) > float(stockStatus['BSE']['price_info']['LTP']):
+            if trades[i]['exchange'] == "BSE":
                 tradeData['soldAt'] = float(stockStatus['BSE']['price_info']['LTP'])
-            else:
+            elif trades[i]['exchange'] == "NSE":
                 tradeData['soldAt'] = float(stockStatus['NSE']['price_info']['lastPrice'])
             self.trade_ref.child(userId).child(tradeData['uid']).update(tradeData)
             userData = self.user_ref.child(userId).get()
