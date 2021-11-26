@@ -36,8 +36,11 @@ class FirebaseClient():
             else:
                 trades[i]['P/L'] = (trades[i]['soldAt']-trades[i]['purchasedAt'])*trades[i]['numOfShares']
                 response['availableBalance'] = response['availableBalance'] + ((trades[i]['soldAt']-trades[i]['purchasedAt'])*trades[i]['numOfShares'])
+            trades[i]['P/L']=float("{:.2f}".format(trades[i]['P/L']))
         response['trades'] = trades
         response['availableBalance'] = response['availableBalance'] - response['tradedValue']
+        response['availableBalance']=float("{:.2f}".format(response['availableBalance']))
+        response['tradedValue']=float("{:.2f}".format(response['tradedValue']))
         self.user_ref.child(uid).update({'availableBalance':response['availableBalance']})
         return response
 
