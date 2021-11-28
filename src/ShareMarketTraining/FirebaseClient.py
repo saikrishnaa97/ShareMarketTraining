@@ -23,6 +23,7 @@ class FirebaseClient():
         trades = self.trade_ref.get().get(uid)
         response['tradedValue'] = 0.00
         response['availableBalance'] = 300000.00
+        curVal = 0
         for i in trades.keys():
             if trades[i]['status'] == "HOLDING":
                 stockStatus = Rest_client().get_stock_status(trades[i]['stockSymbol'])
@@ -32,6 +33,7 @@ class FirebaseClient():
                     trades[i]['currentPrice'] = float(stockStatus['NSE']['price_info']['lastPrice'])
                 trades[i]['P/L'] = (trades[i]['currentPrice'] - trades[i]['purchasedAt']) * trades[i]['numOfShares']
                 trades[i].pop('soldAt')
+                curVal += trades[i]['currentPrice'] * trades[i]['numOfShares']
                 response['tradedValue'] = response['tradedValue'] + (trades[i]['purchasedAt'] * trades[i]['numOfShares'])
             else:
                 trades[i]['P/L'] = (trades[i]['soldAt']-trades[i]['purchasedAt'])*trades[i]['numOfShares']
@@ -41,6 +43,7 @@ class FirebaseClient():
         response['availableBalance'] = response['availableBalance'] - response['tradedValue']
         response['availableBalance']=float("{:.2f}".format(response['availableBalance']))
         response['tradedValue']=float("{:.2f}".format(response['tradedValue']))
+        response['currentValue'] = response['availableBalance'] + curVal
         self.user_ref.child(uid).update({'availableBalance':response['availableBalance']})
         return response
 
