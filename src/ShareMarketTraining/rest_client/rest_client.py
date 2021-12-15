@@ -201,8 +201,8 @@ class Rest_client():
 
     def sendMail(self,text):
         try:
-            import send_email
-            send_email.sendMail(text)
+            from ShareMarketTraining.rest_client import send_mail
+            send_mail.sendMail(text)
             return {"status":"Success"}
         except Exception as e:
             return {"status":str(e)}
