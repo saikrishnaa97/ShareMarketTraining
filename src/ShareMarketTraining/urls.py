@@ -30,5 +30,5 @@ urlpatterns = [
     path('sell/',views.sellShares),
     path('stockStatus/<str:stockName>/', views.stockStatus),
     path('search/<str:queryString>/', views.searchByName),
-    path('sendMail',views.sendMail),
+    path('sendMail/',views.sendMail),
 ]
