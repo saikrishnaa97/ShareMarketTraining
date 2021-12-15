@@ -12,8 +12,14 @@ def sendMail(text):
  v1 = client.CoreV1Api()
  secret = v1.read_namespaced_secret('gmail-secret','saikrishnaa97')
  now = time.localtime()
- curTime = str(now.tm_mday)+"-"+str(now.tm_mon)+"-"+str(now.tm_year)+" "+str(now.tm_hour)+":"+str(now.tm_min)+":"+str(now.tm_sec)
- mail_content = 'Test Case Execution done at '+str(curTime)+'. Results:- '+str(text)
+ month = str(now.tm_mon) if now.tm_mon > 10 else "0"+str(now.tm_mon)
+ day = str(now.tm_mday) if now.tm_mday > 10 else "0"+str(now.tm_mday)
+ hour = str(now.tm_hour) if now.tm_hour > 10 else "0"+str(now.tm_hour)
+ minute = str(now.tm_min) if now.tm_min > 10 else "0"+str(now.tm_min)
+ sec = str(now.tm_sec) if now.tm_sec > 10 else "0"+str(now.tm_sec)
+
+ curTime = str(now.tm_mday)+"-"+str(now.tm_mon)+"-"+str(now.tm_year)+" "+str(now.tm_hour)+":"+str(now.tm_min)+":"+str(now.tm_sec)+" "+str(time.tzname[0])
+ mail_content = 'Test Case Execution done at '+str(curTime)+'.\n Results:- '+str(text)
 
  sender_address = base64.b64decode(secret.data['emailId']).decode('utf-8')
  sender_pass = base64.b64decode(secret.data['password']).decode('utf-8')
