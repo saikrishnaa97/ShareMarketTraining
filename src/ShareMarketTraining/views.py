@@ -49,3 +49,9 @@ def buyShares(request):
 def sellShares(request):
     resp = HttpResponse(json.dumps(FirebaseClient().sellShares(json.loads(request.read()))),content_type="application/json")
     return resp
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def sendMail(request):
+    resp = HttpResponse(json.dumps(Rest_client().sendMail(json.loads(request.read()))),content_type="application/json")
+    return resp
