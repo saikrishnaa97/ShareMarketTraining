@@ -198,3 +198,11 @@ class Rest_client():
         t1.join()
         t2.join()
         return self.topChanges
+
+    def sendMail(self,text):
+        try:
+            import send_email
+            send_email.sendMail(text)
+            return {"status":"Success"}
+        except Exception as e:
+            return {"status":str(e)}
