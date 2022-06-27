@@ -22,6 +22,7 @@ class Rest_client():
         self.bse_stock_url = "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&seriesid=&scripcode="
         self.top_gainers_url = "https://api.bseindia.com/BseIndiaAPI/api/HoTurnover/w?flag=G"
         self.top_losers_url = "https://api.bseindia.com/BseIndiaAPI/api/HoTurnover/w?flag=L"
+        self.nse_search_url = "https://www.nseindia.com/api/search/autocomplete?q="
         self.NIFTY_INDEX_NAME = "NIFTY 50"
         self.topChanges = {}
         self.live_indices = {}
