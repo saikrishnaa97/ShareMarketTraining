@@ -13,7 +13,7 @@ data = response.json()
 
 current_date = date.today()
 to = current_date.strftime("%d-%m-%Y")
-from_ = current_date.replace(day = current_date.day-7).strftime("%d-%m-%Y")
+from_ = (current_date-timedelta(days=7)).strftime("%d-%m-%Y")
 for i in data['data']:
    symbol = i['symbol']
    yearHigh = i['yearHigh']
