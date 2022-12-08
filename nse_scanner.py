@@ -39,7 +39,7 @@ def get_scanner_data():
        a['ltp']  = lastPrice
        a['name'] = name
        result['data'].append(a)
-  print(result)
+  print(json.dumps(result,indent=1))
   return result
 
 
