@@ -2,8 +2,10 @@
 
 import requests, json
 from datetime import date, timedelta
+import cgi
 
-def get_scanner_data():
+def get_scanner_data(args):
+#  print('Content-Type:text/html\r\n\r\n')
   print('Content-type: application/json\r\n\r\n') # the mime-type header.
   url = "https://www.nseindia.com/"
   headers = {"user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36", "accept-encoding": "gzip, deflate, br","accept-language": "en-GB,en-US;q=0.9,en;q=0.8,la;q=0.7","sec-ch-ua-platform": "Linux", "sec-ch-ua": '"Chromium";v="94", "Google Chrome";v="94", ";Not A Brand";v="99"'}
@@ -40,7 +42,12 @@ def get_scanner_data():
        a['name'] = name
        result['data'].append(a)
   print(json.dumps(result,indent=1))
+  if 'stock' in args.keys():
+    stockUrl = "https://www.nseindia.com/api/quote-equity?symbol="+args['stock'][0]
+    resp = conn.get(stockUrl,headers=headers,cookies=cookies)
+    print(json.dumps(resp.json(),indent=1))
+
   return result
 
-
-get_scanner_data()
+args = cgi.parse()
+get_scanner_data(args)
