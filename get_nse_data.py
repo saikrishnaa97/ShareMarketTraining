@@ -45,7 +45,7 @@ def get_nse_status():
     return result
 
 def search_stock(text):
-    complete_url = nse_url + "api/search/autocomplete?q="+text
+    current_url = nse_url + "api/search/autocomplete?q="+text
     cookies = get_cookie()
     conn = requests.Session()
     response = conn.get(current_url,headers=headers,cookies=cookies)
