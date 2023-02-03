@@ -103,3 +103,39 @@ def get_historical_data(symbol,from_,to_):
         temp['closingPrice'] = i['CH_CLOSING_PRICE']
         result['data'].append(temp)
     return result
+
+def get_top_gainers():
+   current_url = nse1_url + "live_market/dynaContent/live_analysis/gainers/niftyGainers1.json"
+   cookies = get_cookie()
+   conn = requests.Session()
+   response = conn.get(current_url,headers=headers,cookies=cookies)
+   data = response.json()
+   result = {}
+   result['data'] = []
+   conn.close()
+   for i in data['data']:
+       temp = {}
+       temp['symbol'] = i['symbol']
+       temp['ltp'] = i['ltp']
+       temp['highPrice'] = i['highPrice']
+       temp['lowPrice'] = i['lowPrice']
+       result['data'].append(temp)
+   return result
+
+def get_top_losers():
+    current_url = nse1_url + "live_market/dynaContent/live_analysis/losers/niftyLosers1.json"
+    cookies = get_cookie()
+    conn = requests.Session()
+    response = conn.get(current_url,headers=headers,cookies=cookies)
+    data = response.json()
+    result = {}
+    result['data'] = []
+    conn.close()
+    for i in data['data']:
+        temp = {}
+        temp['symbol'] = i['symbol']
+        temp['ltp'] = i['ltp']
+        temp['highPrice'] = i['highPrice']
+        temp['lowPrice'] = i['lowPrice']
+        result['data'].append(temp)
+    return result
