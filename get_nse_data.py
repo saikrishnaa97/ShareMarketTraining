@@ -72,6 +72,7 @@ def get_index_stocks(index,is52WkHigh=False,is52WkLow=False):
     conn.close()
     result['index'] = data['name']
     for i in data['data']:
+      if 'meta' in i.keys():
         temp = {}
         temp['symbol'] = i['symbol']
         temp['name'] = i['meta']['companyName']
@@ -100,5 +101,5 @@ def get_historical_data(symbol,from_,to_):
         temp['dayHigh'] = i['CH_TRADE_HIGH_PRICE']
         temp['openingPrice'] = i['CH_OPENING_PRICE']
         temp['closingPrice'] = i['CH_CLOSING_PRICE']
-        result.append(temp)
+        result['data'].append(temp)
     return result
