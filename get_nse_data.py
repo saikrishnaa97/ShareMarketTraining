@@ -1,5 +1,7 @@
-import requests
+#!/usr/bin/python
 
+import requests
+import cgi
 
 nse_url = "https://www.nseindia.com/"
 nse1_url = "https://www1.nseindia.com/"
@@ -41,6 +43,7 @@ def get_nse_status():
     for i in data['data']:
         if i['name'] == "NIFTY 50":
             result = i
+            result.pop('imgFileName')
             return result
     return result
 
@@ -61,7 +64,7 @@ def search_stock(text):
         result['data'].append(temp)
     return result
 
-def get_index_stocks(index,is52WkHigh=False,is52WkLow=False):
+def get_index_stocks(index):
     current_url = nse_url + "api/equity-stockIndices?index="+index
     cookies = get_cookie()
     conn = requests.Session()
@@ -105,22 +108,22 @@ def get_historical_data(symbol,from_,to_):
     return result
 
 def get_top_gainers():
-   current_url = nse1_url + "live_market/dynaContent/live_analysis/gainers/niftyGainers1.json"
-   cookies = get_cookie()
-   conn = requests.Session()
-   response = conn.get(current_url,headers=headers,cookies=cookies)
-   data = response.json()
-   result = {}
-   result['data'] = []
-   conn.close()
-   for i in data['data']:
-       temp = {}
-       temp['symbol'] = i['symbol']
-       temp['ltp'] = i['ltp']
-       temp['highPrice'] = i['highPrice']
-       temp['lowPrice'] = i['lowPrice']
-       result['data'].append(temp)
-   return result
+    current_url = nse1_url + "live_market/dynaContent/live_analysis/gainers/niftyGainers1.json"
+    cookies = get_cookie()
+    conn = requests.Session()
+    response = conn.get(current_url,headers=headers,cookies=cookies)
+    data = response.json()
+    result = {}
+    result['data'] = []
+    conn.close()
+    for i in data['data']:
+        temp = {}
+        temp['symbol'] = i['symbol']
+        temp['ltp'] = i['ltp']
+        temp['highPrice'] = i['highPrice']
+        temp['lowPrice'] = i['lowPrice']
+        result['data'].append(temp)
+    return result
 
 def get_top_losers():
     current_url = nse1_url + "live_market/dynaContent/live_analysis/losers/niftyLosers1.json"
@@ -139,3 +142,30 @@ def get_top_losers():
         temp['lowPrice'] = i['lowPrice']
         result['data'].append(temp)
     return result
+
+
+args = cgi.parse()
+print('Content-type: application/json\r\n\r\n') # the mime-type header.
+if 'query' in args.keys():
+    q = args['query'][0]
+    if q == "topGainers":
+        print(get_top_gainers())
+    elif q == "topLosers":
+        print(get_top_losers())
+    elif q == "niftyData":
+        print(get_nse_status())
+    elif q == "search":
+        if 'symbol' in args.keys():
+            print(search_stock(args['symbol'][0]))
+        else:
+            print('{"error":"symbol is missing"}')
+    elif q == "indexData":
+        if 'index' in args.keys():
+            print(get_index_stocks(args['index'][0]))
+        else:
+            print('{"error":"index is missing"}')
+    elif q == "historicalData":
+        if 'symbol' in args.keys() and "from" in args.keys() and "to" in args.keys():
+            print(get_historical_data(args['symbol'][0],args['from'][0],args['to'][0]))
+        else:
+            print('{"error":"Either symbol or fromDate or toDate is missing"}')
