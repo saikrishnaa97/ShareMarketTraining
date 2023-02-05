@@ -3,6 +3,7 @@
 import requests
 import cgi
 from datetime import datetime, timedelta, date
+import calendar
 
 nse_url = "https://www.nseindia.com/"
 nse1_url = "https://www1.nseindia.com/"
@@ -150,26 +151,24 @@ def get_nWeek_low(symbol,weeks):
   data = get_historical_data(symbol,from_,to_)
   lowPrice = 99999999
   for i in data['data']:
-	  date_obj = datetime.strptime(i['date'],"%d-%b-%Y").date()
-  	if "Friday" == calendar.day_name[date_obj.weekday()]:
-	   if lowPrice > i['dayLow']:
-	      lowPrice = i['dayLow']
-  print('{"numberOfWeeks":'+weeks+',"type":"Low","price":'+lowPrice+'}')
-  
-  
+      date_obj = datetime.strptime(i['date'],"%d-%b-%Y").date()
+      if "Friday" == calendar.day_name[date_obj.weekday()]:
+          if lowPrice > i['dayLow']:
+              lowPrice = i['dayLow']
+  return '{"numberOfWeeks":'+str(weeks)+',"type":"Low","price":'+str(lowPrice)+',"symbol":"'+symbol+'"}'
+
+
 def get_nWeek_high(symbol,weeks):
   to_ = str(date.today().strftime("%d-%m-%Y"))
   from_ = str((date.today() - timedelta(days=7*weeks)).strftime("%d-%m-%Y"))
   data = get_historical_data(symbol,from_,to_)
   highPrice = -1
   for i in data['data']:
-	  date_obj = datetime.strptime(i['date'],"%d-%b-%Y").date()
-  	if "Friday" == calendar.day_name[date_obj.weekday()]:
-	   if highPrice < i['dayHigh']:
-	      highPrice = i['dayHigh']
-  print('{"numberOfWeeks":'+weeks+',"type":"High","price":'+highPrice+'}')
-  
-  
+      date_obj = datetime.strptime(i['date'],"%d-%b-%Y").date()
+      if "Friday" == calendar.day_name[date_obj.weekday()]:
+          if highPrice < i['dayHigh']:
+              highPrice = i['dayHigh']
+  return '{"numberOfWeeks":'+str(weeks)+',"type":"High","price":'+str(highPrice)+',"symbol":"'+symbol+'"}'
 
 args = cgi.parse()
 print('Content-type: application/json\r\n\r\n') # the mime-type header.
@@ -193,12 +192,12 @@ if 'query' in args.keys():
             print('{"error":"index is missing"}')
     elif q == "nWeekLow":
       if 'symbol' in args.keys() and 'weeks' in args.keys():
-        print(get_nWeek_low(args['symbol'][0],args['weeks'][0]))
+        print(get_nWeek_low(args['symbol'][0],int(args['weeks'][0])))
       else:
           print('{"error":"symbol and/or weeks are missing"}')
     elif q == "nWeekHigh":
       if 'symbol' in args.keys() and 'weeks' in args.keys():
-        print(get_nWeek_high(args['symbol'][0],args['weeks'][0]))
+        print(get_nWeek_high(args['symbol'][0],int(args['weeks'][0])))
       else:
           print('{"error":"symbol and/or weeks are missing"}')
     elif q == "historicalData":
