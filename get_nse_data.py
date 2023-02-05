@@ -4,6 +4,7 @@ import requests
 import cgi
 from datetime import datetime, timedelta, date
 import calendar
+import urllib.parse
 
 nse_url = "https://www.nseindia.com/"
 nse1_url = "https://www1.nseindia.com/"
@@ -28,7 +29,7 @@ def get_stock_status(symbol):
     response = conn.get(current_url,headers=headers,cookies=cookies)
     data = response.json()
     result = {}
-    result['symbol'] = symbol
+    result['symbol'] = urllib.parse.unquote(symbol)
     result['name'] = data['info']['companyName']
     result['ltp'] = data['priceInfo']['lastPrice']
     conn.close()
@@ -98,7 +99,7 @@ def get_historical_data(symbol,from_,to_):
     result = {}
     result['data'] = []
     conn.close()
-    result['symbol'] = symbol
+    result['symbol'] = urllib.parse.unquote(symbol)
     for i in data['data']:
         temp = {}
         temp['date'] = i['mTIMESTAMP']
@@ -155,7 +156,7 @@ def get_nWeek_low(symbol,weeks):
       if "Friday" == calendar.day_name[date_obj.weekday()]:
           if lowPrice > i['dayLow']:
               lowPrice = i['dayLow']
-  return '{"numberOfWeeks":'+str(weeks)+',"type":"Low","price":'+str(lowPrice)+',"symbol":"'+symbol+'"}'
+  return '{"numberOfWeeks":'+str(weeks)+',"type":"Low","price":'+str(lowPrice)+',"symbol":"'+urllib.parse.unquote(symbol)+'"}'
 
 
 def get_nWeek_high(symbol,weeks):
@@ -168,12 +169,20 @@ def get_nWeek_high(symbol,weeks):
       if "Friday" == calendar.day_name[date_obj.weekday()]:
           if highPrice < i['dayHigh']:
               highPrice = i['dayHigh']
-  return '{"numberOfWeeks":'+str(weeks)+',"type":"High","price":'+str(highPrice)+',"symbol":"'+symbol+'"}'
+  return '{"numberOfWeeks":'+str(weeks)+',"type":"High","price":'+str(highPrice)+',"symbol":"'+urllib.parse.unquote(symbol)+'"}'
 
 args = cgi.parse()
+query_params = {}
+for k,v in args.items():
+    k = urllib.parse.quote(k)
+    query_params[k] = []
+    if type(v) is list:
+        for j in v:
+            j = urllib.parse.quote(j)
+            query_params[k].append(j)
 print('Content-type: application/json\r\n\r\n') # the mime-type header.
-if 'query' in args.keys():
-    q = args['query'][0]
+if 'query' in query_params.keys():
+    q = query_params['query'][0]
     if q == "topGainers":
         print(get_top_gainers())
     elif q == "topLosers":
@@ -181,27 +190,27 @@ if 'query' in args.keys():
     elif q == "niftyData":
         print(get_nse_status())
     elif q == "search":
-        if 'symbol' in args.keys():
-            print(search_stock(args['symbol'][0]))
+        if 'symbol' in query_params.keys():
+            print(search_stock(query_params['symbol'][0]))
         else:
             print('{"error":"symbol is missing"}')
     elif q == "indexData":
-        if 'index' in args.keys():
-            print(get_index_stocks(args['index'][0]))
+        if 'index' in query_params.keys():
+            print(get_index_stocks(query_params['index'][0]))
         else:
             print('{"error":"index is missing"}')
     elif q == "nWeekLow":
-      if 'symbol' in args.keys() and 'weeks' in args.keys():
-        print(get_nWeek_low(args['symbol'][0],int(args['weeks'][0])))
+      if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
+        print(get_nWeek_low(query_params['symbol'][0],int(query_params['weeks'][0])))
       else:
           print('{"error":"symbol and/or weeks are missing"}')
     elif q == "nWeekHigh":
-      if 'symbol' in args.keys() and 'weeks' in args.keys():
-        print(get_nWeek_high(args['symbol'][0],int(args['weeks'][0])))
+      if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
+        print(get_nWeek_high(query_params['symbol'][0],int(query_params['weeks'][0])))
       else:
           print('{"error":"symbol and/or weeks are missing"}')
     elif q == "historicalData":
-        if 'symbol' in args.keys() and "from" in args.keys() and "to" in args.keys():
-            print(get_historical_data(args['symbol'][0],args['from'][0],args['to'][0]))
+        if 'symbol' in query_params.keys() and "from" in query_params.keys() and "to" in query_params.keys():
+            print(get_historical_data(query_params['symbol'][0],query_params['from'][0],query_params['to'][0]))
         else:
             print('{"error":"Either symbol or fromDate or toDate is missing"}')
