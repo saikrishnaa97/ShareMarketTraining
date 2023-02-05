@@ -194,9 +194,13 @@ if 'query' in args.keys():
     elif q == "nWeekLow":
       if 'symbol' in args.keys() and 'weeks' in args.keys():
         print(get_nWeek_low(args['symbol'][0],args['weeks'][0]))
+      else:
+          print('{"error":"symbol and/or weeks are missing"}')
     elif q == "nWeekHigh":
       if 'symbol' in args.keys() and 'weeks' in args.keys():
         print(get_nWeek_high(args['symbol'][0],args['weeks'][0]))
+      else:
+          print('{"error":"symbol and/or weeks are missing"}')
     elif q == "historicalData":
         if 'symbol' in args.keys() and "from" in args.keys() and "to" in args.keys():
             print(get_historical_data(args['symbol'][0],args['from'][0],args['to'][0]))
