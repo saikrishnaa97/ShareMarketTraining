@@ -46,6 +46,10 @@ def get_scanner_data(args):
     stockUrl = "https://www.nseindia.com/api/quote-equity?symbol="+args['stock'][0]
     resp = conn.get(stockUrl,headers=headers,cookies=cookies)
     print(json.dumps(resp.json(),indent=1))
+  elif 'sensex' in args.keys():
+    sensexUrl = "https://api.bseindia.com/RealTimeBseIndiaAPI/api/GetSensexData/w"
+    resp = conn.get(stockUrl,headers=headers)
+    print(json.dumps(resp.json(),indent=1))
 
   return result
 
