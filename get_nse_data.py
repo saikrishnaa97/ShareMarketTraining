@@ -151,12 +151,14 @@ def get_nWeek_low(symbol,weeks):
   from_ = str((date.today() - timedelta(days=7*weeks)).strftime("%d-%m-%Y"))
   data = get_historical_data(symbol,from_,to_)
   lowPrice = 99999999
+  lowDate = ""
   for i in data['data']:
       date_obj = datetime.strptime(i['date'],"%d-%b-%Y").date()
       if "Friday" == calendar.day_name[date_obj.weekday()]:
           if lowPrice > i['dayLow']:
               lowPrice = i['dayLow']
-  return '{"numberOfWeeks":'+str(weeks)+',"type":"Low","price":'+str(lowPrice)+',"symbol":"'+urllib.parse.unquote(symbol)+'"}'
+              lowDate = i['date']
+  return '{"numberOfWeeks":'+str(weeks)+',"type":"Low","price":'+str(lowPrice)+',"symbol":"'+urllib.parse.unquote(symbol)+'","date":"'+lowDate+'"}'
 
 
 def get_nWeek_high(symbol,weeks):
@@ -164,12 +166,14 @@ def get_nWeek_high(symbol,weeks):
   from_ = str((date.today() - timedelta(days=7*weeks)).strftime("%d-%m-%Y"))
   data = get_historical_data(symbol,from_,to_)
   highPrice = -1
+  highDate = ""
   for i in data['data']:
       date_obj = datetime.strptime(i['date'],"%d-%b-%Y").date()
       if "Friday" == calendar.day_name[date_obj.weekday()]:
           if highPrice < i['dayHigh']:
               highPrice = i['dayHigh']
-  return '{"numberOfWeeks":'+str(weeks)+',"type":"High","price":'+str(highPrice)+',"symbol":"'+urllib.parse.unquote(symbol)+'"}'
+              highDate = i['date']
+  return '{"numberOfWeeks":'+str(weeks)+',"type":"High","price":'+str(highPrice)+',"symbol":"'+urllib.parse.unquote(symbol)+'","date":"'+highDate+'"}'
 
 args = cgi.parse()
 query_params = {}
