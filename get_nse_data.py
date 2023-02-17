@@ -1,20 +1,22 @@
 #!/usr/bin/python
-
+#print('Content-type: application/json\r\n\r\n') # the mime-type header.
 import requests
 import cgi
 from datetime import datetime, timedelta, date
 import calendar
+#import firebase_client
 import urllib.parse
+import getTopChangers
 
 nse_url = "https://www.nseindia.com/"
 nse1_url = "https://www1.nseindia.com/"
 headers = {"user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36", "accept-encoding": "gzip,deflate, br","accept-language": "en-GB,en-US;q=0.9,en;q=0.8,la;q=0.7","sec-ch-ua-platform": "Linux", "sec-ch-ua": '"Chromium";v="94", "Google Chrome";v="94", ";Not A Brand";v="99"'}
 
 
-def get_cookie():
+def get_cookie(cookie_url):
   conn = requests.Session()
   try:
-   response = conn.get(nse_url,headers=headers)
+   response = conn.get(cookie_url,headers=headers)
   except Exception as e:
       print(e)
       return e
@@ -24,7 +26,7 @@ def get_cookie():
 
 def get_stock_status(symbol):
     current_url = nse_url+"api/quote-equity?symbol="+symbol
-    cookies = get_cookie()
+    cookies = get_cookie(nse_url)
     conn = requests.Session()
     response = conn.get(current_url,headers=headers,cookies=cookies)
     data = response.json()
@@ -37,7 +39,7 @@ def get_stock_status(symbol):
 
 def get_nse_status():
     current_url = nse1_url+"homepage/Indices1.json"
-    cookies = get_cookie()
+    cookies = get_cookie(nse_url)
     conn = requests.Session()
     response = conn.get(current_url,headers=headers,cookies=cookies)
     data = response.json()
@@ -52,7 +54,7 @@ def get_nse_status():
 
 def search_stock(text):
     current_url = nse_url + "api/search/autocomplete?q="+text
-    cookies = get_cookie()
+    cookies = get_cookie(nse_url)
     conn = requests.Session()
     response = conn.get(current_url,headers=headers,cookies=cookies)
     data = response.json()
@@ -69,7 +71,7 @@ def search_stock(text):
 
 def get_index_stocks(index):
     current_url = nse_url + "api/equity-stockIndices?index="+index
-    cookies = get_cookie()
+    cookies = get_cookie(nse_url)
     conn = requests.Session()
     response = conn.get(current_url,headers=headers,cookies=cookies)
     data = response.json()
@@ -92,7 +94,7 @@ def get_index_stocks(index):
 
 def get_historical_data(symbol,from_,to_):
     current_url = nse_url+"api/historical/cm/equity?symbol="+symbol+"&series=[\"EQ\"]&from="+from_+"&to="+to_
-    cookies = get_cookie()
+    cookies = get_cookie(nse_url)
     conn = requests.Session()
     response = conn.get(current_url,headers=headers,cookies=cookies)
     data = response.json()
@@ -112,7 +114,7 @@ def get_historical_data(symbol,from_,to_):
 
 def get_top_gainers():
     current_url = nse1_url + "live_market/dynaContent/live_analysis/gainers/niftyGainers1.json"
-    cookies = get_cookie()
+    cookies = get_cookie(nse1_url)
     conn = requests.Session()
     response = conn.get(current_url,headers=headers,cookies=cookies)
     data = response.json()
@@ -130,7 +132,7 @@ def get_top_gainers():
 
 def get_top_losers():
     current_url = nse1_url + "live_market/dynaContent/live_analysis/losers/niftyLosers1.json"
-    cookies = get_cookie()
+    cookies = get_cookie(nse1_url)
     conn = requests.Session()
     response = conn.get(current_url,headers=headers,cookies=cookies)
     data = response.json()
@@ -188,9 +190,9 @@ print('Content-type: application/json\r\n\r\n') # the mime-type header.
 if 'query' in query_params.keys():
     q = query_params['query'][0]
     if q == "topGainers":
-        print(get_top_gainers())
+        print(getTopChangers.get_top_gainers())
     elif q == "topLosers":
-        print(get_top_losers())
+        print(getTopChangers.get_top_losers())
     elif q == "niftyData":
         print(get_nse_status())
     elif q == "search":
