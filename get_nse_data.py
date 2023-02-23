@@ -4,9 +4,12 @@ import requests
 import cgi
 from datetime import datetime, timedelta, date
 import calendar
-#import firebase_client
+import firebase_client
 import urllib.parse
 import getTopChangers
+import json
+from threading import Thread
+import math
 
 nse_url = "https://www.nseindia.com/"
 nse1_url = "https://www1.nseindia.com/"
@@ -160,7 +163,7 @@ def get_nWeek_low(symbol,weeks):
           if lowPrice > i['dayLow']:
               lowPrice = i['dayLow']
               lowDate = i['date']
-  return '{"numberOfWeeks":'+str(weeks)+',"type":"Low","price":'+str(lowPrice)+',"symbol":"'+urllib.parse.unquote(symbol)+'","date":"'+lowDate+'"}'
+  return json.loads('{"numberOfWeeks":'+str(weeks)+',"type":"Low","price":'+str(lowPrice)+',"symbol":"'+urllib.parse.unquote(symbol)+'","date":"'+lowDate+'"}')
 
 
 def get_nWeek_high(symbol,weeks):
@@ -176,6 +179,67 @@ def get_nWeek_high(symbol,weeks):
               highPrice = i['dayHigh']
               highDate = i['date']
   return '{"numberOfWeeks":'+str(weeks)+',"type":"High","price":'+str(highPrice)+',"symbol":"'+urllib.parse.unquote(symbol)+'","date":"'+highDate+'"}'
+
+def get_portfolio(user_id):
+    data = firebase_client.get_portfolio(user_id)
+    result = {}
+    result['portfolio'] = []
+    stocksList = []
+    for k,i in data.items():
+        item = {}
+        item['symbol'] = i['stockSymbol']
+        item['avgCost'] = i['purchasedAt']
+        item['uid'] = i['uid']
+        stocksList.append(item)
+    gttValues = {}
+    numOfThreads = math.ceil(len(stocksList)/4)
+    stocksPerThread = math.ceil(len(stocksList)/numOfThreads)
+    i=0
+    threads = []
+    while i < numOfThreads:
+        lastIndex = min((i+1)*stocksPerThread,len(stocksList))
+        t = ThreadWithReturnValue( target= get_gtt_values,args = (stocksList[i*stocksPerThread:lastIndex],))
+        threads.append(t)
+        t.start()
+        gttValues = { **gttValues , **t.join()}
+        i = i + 1
+#    print(gttValues)
+    for k,i in data.items():
+        trade = {}
+        trade['symbol'] = i['stockSymbol']
+        trade['ltp'] = gttValues[i['uid']]['ltp']
+        trade['stopLoss'] = gttValues[i['uid']]['stopLoss']
+        trade['target'] = gttValues[i['uid']]['target']
+        trade['numOfShares'] = i['numOfShares']
+        trade['avgCost'] = i['purchasedAt']
+        trade['uid'] = i['uid']
+        result['portfolio'].append(trade)
+    return(result)
+
+class ThreadWithReturnValue(Thread):
+
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs={}, Verbose=None):
+        Thread.__init__(self, group, target, name, args, kwargs)
+        self._return = None
+
+    def run(self):
+        if self._target is not None:
+            self._return = self._target(*self._args,
+                                                **self._kwargs)
+    def join(self, *args):
+        Thread.join(self, *args)
+        return self._return
+
+def get_gtt_values(stocksList):
+    result = {}
+    for i in stocksList:
+        result[i['uid']] = {}
+        result[i['uid']]['stopLoss'] = get_nWeek_low(i['symbol'],10)['price']
+        result[i['uid']]['target'] = i['avgCost'] * 1.6
+        result[i['uid']]['ltp'] = get_stock_status(i['symbol'])['ltp']
+    return result
+
 
 args = cgi.parse()
 query_params = {}
@@ -193,6 +257,11 @@ if 'query' in query_params.keys():
         print(getTopChangers.get_top_gainers())
     elif q == "topLosers":
         print(getTopChangers.get_top_losers())
+    elif q == "stockData":
+        if 'symbol' in query_params.keys():
+            print(get_stock_status(query_params['symbol'][0]))
+        else:
+            print('{"error":"symbol is missing"}')
     elif q == "niftyData":
         print(get_nse_status())
     elif q == "search":
@@ -220,3 +289,8 @@ if 'query' in query_params.keys():
             print(get_historical_data(query_params['symbol'][0],query_params['from'][0],query_params['to'][0]))
         else:
             print('{"error":"Either symbol or fromDate or toDate is missing"}')
+    elif q == "portfolio":
+        if 'user_id' in query_params.keys():
+            print(get_portfolio(query_params['user_id'][0]))
+        else:
+            print('{"error":"user_id is missing"}')
