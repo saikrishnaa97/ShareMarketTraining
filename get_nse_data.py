@@ -11,7 +11,6 @@ import json
 from threading import Thread
 import math
 from datetime import datetime
-import sys
 
 nse_url = "https://www.nseindia.com/"
 nse1_url = "https://www1.nseindia.com/"
@@ -180,7 +179,7 @@ def get_nWeek_high(symbol,weeks):
           if highPrice < i['dayHigh']:
               highPrice = i['dayHigh']
               highDate = i['date']
-  return '{"numberOfWeeks":'+str(weeks)+',"type":"High","price":'+str(highPrice)+',"symbol":"'+urllib.parse.unquote(symbol)+'","date":"'+highDate+'"}'
+  return json.loads('{"numberOfWeeks":'+str(weeks)+',"type":"High","price":'+str(highPrice)+',"symbol":"'+urllib.parse.unquote(symbol)+'","date":"'+highDate+'"}')
 
 def get_portfolio(user_id):
     data = firebase_client.get_portfolio(user_id)
@@ -253,6 +252,7 @@ for k,v in args.items():
             j = urllib.parse.quote(j)
             query_params[k].append(j)
 print('Content-type: application/json\r\n\r\n') # the mime-type header.
+import sys
 old= sys.stdout
 environ = open("/tmp/file","w")
 sys.stdout = environ
@@ -268,46 +268,75 @@ for i in environ.split('\n'):
     if 'REQUEST_URI ' in i:
         request_uri = i.split("<DT> REQUEST_URI <DD> ")[1]
 
-if 'query' in query_params.keys():
-    q = query_params['query'][0]
-    if q == "topGainers":
-        print(json.dumps(getTopChangers.get_top_gainers(),indent=1))
-    elif q == "topLosers":
-        print(json.dumps(getTopChangers.get_top_losers(),indent=1))
-    elif q == "stockData":
-        if 'symbol' in query_params.keys():
-            print(json.dumps(get_stock_status(query_params['symbol'][0]),indent=1))
-        else:
-            print(json.dumps({"error":"symbol is missing"},indent=1))
-    elif q == "niftyData":
-        print(json.dumps(get_nse_status(),indent=1))
-    elif q == "search":
-        if 'symbol' in query_params.keys():
-            print(json.dumps(search_stock(query_params['symbol'][0]),indent=1))
-        else:
-            print(json.dumps({"error":"symbol is missing"},indent=1))
-    elif q == "indexData":
-        if 'index' in query_params.keys():
-            print(json.dumps(get_index_stocks(query_params['index'][0]),indent=1))
-        else:
-            print(json.dumps({"error":"index is missing"},indent=1))
-    elif q == "nWeekLow":
-      if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
-        print(json.dumps(get_nWeek_low(query_params['symbol'][0],int(query_params['weeks'][0])),indent=1))
-      else:
-          print(json.dumps({"error":"symbol and/or weeks are missing"},indent=1))
-    elif q == "nWeekHigh":
-      if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
-        print(json.dumps(get_nWeek_high(query_params['symbol'][0],int(query_params['weeks'][0])),indent=1))
-      else:
-          print(json.dumps({"error":"symbol and/or weeks are missing"},indent=1))
-    elif q == "historicalData":
-        if 'symbol' in query_params.keys() and "from" in query_params.keys() and "to" in query_params.keys():
-            print(json.dumps(get_historical_data(query_params['symbol'][0],query_params['from'][0],query_params['to'][0]),indent=1))
-        else:
-            print(json.dumps({"error":"Either symbol or fromDate or toDate is missing"},indent=1))
-    elif q == "portfolio":
-        if 'user_id' in query_params.keys():
-            print(json.dumps(get_portfolio(query_params['user_id'][0]),indent=1))
-        else:
-            print(json.dumps({"error":"user_id is missing"},indent=1))
+request_uri = request_uri.split("nseData")[1].split("?")[0]
+
+
+if request_uri == "/topGainers":
+    print(json.dumps(getTopChangers.get_top_gainers(),indent=1))
+elif request_uri == "/topLosers":
+    print(json.dumps(getTopChangers.get_top_losers(),indent=1))
+elif request_uri == "/stockData":
+    if 'symbol' in query_params.keys():
+        print(json.dumps(get_stock_status(query_params['symbol'][0]),indent=1))
+    else:
+        print(json.dumps({"error":"symbol is missing"},indent=1))
+elif request_uri == "/niftyData":
+    print(json.dumps(get_nse_status(),indent=1))
+elif request_uri == "/search":
+    if 'symbol' in query_params.keys():
+        print(json.dumps(search_stock(query_params['symbol'][0]),indent=1))
+    else:
+        print(json.dumps({"error":"symbol is missing"},indent=1))
+elif request_uri == "/indexData":
+    if 'index' in query_params.keys():
+        print(json.dumps(get_index_stocks(query_params['index'][0]),indent=1))
+    else:
+        print(json.dumps({"error":"index is missing"},indent=1))
+elif request_uri == "/nWeekLow":
+  if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
+    print(json.dumps(get_nWeek_low(query_params['symbol'][0],int(query_params['weeks'][0])),indent=1))
+  else:
+      print(json.dumps({"error":"symbol and/or weeks are missing"},indent=1))
+elif request_uri == "/nWeekHigh":
+  if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
+    print(json.dumps(get_nWeek_high(query_params['symbol'][0],int(query_params['weeks'][0])),indent=1))
+  else:
+      print(json.dumps({"error":"symbol and/or weeks are missing"},indent=1))
+elif request_uri == "/historicalData":
+    if 'symbol' in query_params.keys() and "from" in query_params.keys() and "to" in query_params.keys():
+        print(json.dumps(get_historical_data(query_params['symbol'][0],query_params['from'][0],query_params['to'][0]),indent=1))
+    else:
+        print(json.dumps({"error":"Either symbol or fromDate or toDate is missing"},indent=1))
+elif request_uri == "/portfolio":
+    if 'user_id' in query_params.keys():
+        print(json.dumps(get_portfolio(query_params['user_id'][0]),indent=1))
+    else:
+        print(json.dumps({"error":"user_id is missing"},indent=1))
+
+#if 'query' in query_params.keys():
+#    q = query_params['query'][0]
+#    elif q == "indexData":
+#        if 'index' in query_params.keys():
+#            print(json.dumps(get_index_stocks(query_params['index'][0]),indent=1))
+#        else:
+#            print(json.dumps({"error":"index is missing"},indent=1))
+#    elif q == "nWeekLow":
+#      if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
+#        print(json.dumps(get_nWeek_low(query_params['symbol'][0],int(query_params['weeks'][0])),indent=1))
+#      else:
+#          print(json.dumps({"error":"symbol and/or weeks are missing"},indent=1))
+#    elif q == "nWeekHigh":
+#      if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
+#        print(json.dumps(get_nWeek_high(query_params['symbol'][0],int(query_params['weeks'][0])),indent=1))
+#      else:
+#          print(json.dumps({"error":"symbol and/or weeks are missing"},indent=1))
+#    elif q == "historicalData":
+#        if 'symbol' in query_params.keys() and "from" in query_params.keys() and "to" in query_params.keys():
+#            print(json.dumps(get_historical_data(query_params['symbol'][0],query_params['from'][0],query_params['to'][0]),indent=1))
+#        else:
+#            print(json.dumps({"error":"Either symbol or fromDate or toDate is missing"},indent=1))
+#    elif q == "portfolio":
+#        if 'user_id' in query_params.keys():
+#            print(json.dumps(get_portfolio(query_params['user_id'][0]),indent=1))
+#        else:
+#            print(json.dumps({"error":"user_id is missing"},indent=1))
