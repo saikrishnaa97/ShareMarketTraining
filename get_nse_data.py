@@ -11,6 +11,7 @@ import json
 from threading import Thread
 import math
 from datetime import datetime
+import sys
 
 nse_url = "https://www.nseindia.com/"
 nse1_url = "https://www1.nseindia.com/"
@@ -252,6 +253,21 @@ for k,v in args.items():
             j = urllib.parse.quote(j)
             query_params[k].append(j)
 print('Content-type: application/json\r\n\r\n') # the mime-type header.
+old= sys.stdout
+environ = open("/tmp/file","w")
+sys.stdout = environ
+cgi.print_environ()
+environ.flush()
+sys.stdout = old
+environ.close()
+envData = open("/tmp/file","r")
+environ = envData.read()
+envData.close()
+request_uri = ""
+for i in environ.split('\n'):
+    if 'REQUEST_URI ' in i:
+        request_uri = i.split("<DT> REQUEST_URI <DD> ")[1]
+
 if 'query' in query_params.keys():
     q = query_params['query'][0]
     if q == "topGainers":
