@@ -18,6 +18,7 @@ class Server(BaseHTTPRequestHandler):
         self._set_headers()
         result = {}
         query_params = {}
+        print(vars(self))
         temp = self.path.split("?")
         request_uri = temp[0]
         if len(temp) > 1:
@@ -26,46 +27,45 @@ class Server(BaseHTTPRequestHandler):
                 a = i.split("=")
                 query_params[a[0]] = a[1]
         print(query_params)
-
         if request_uri == "/topGainers":
             result = g.getTopChangers.get_top_gainers()
         elif request_uri == "/topLosers":
             result = g.getTopChangers.get_top_losers()
         elif request_uri == "/stockData":
             if 'symbol' in query_params.keys():
-                result = g.get_stock_status(query_params['symbol'][0])
+                result = g.get_stock_status(query_params['symbol'])
             else:
                 result = {"error":"symbol is missing"}
         elif request_uri == "/niftyData":
             result = g.get_nse_status()
         elif request_uri == "/search":
             if 'symbol' in query_params.keys():
-                result = g.search_stock(query_params['symbol'][0])
+                result = g.search_stock(query_params['symbol'])
             else:
                 result = {"error":"symbol is missing"}
         elif request_uri == "/indexData":
             if 'index' in query_params.keys():
-                result = g.get_index_stocks(query_params['index'][0])
+                result = g.get_index_stocks(query_params['index'])
             else:
                 result = {"error":"index is missing"}
         elif request_uri == "/nWeekLow":
           if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
-            result = g.get_nWeek_low(query_params['symbol'][0],int(query_params['weeks'][0]))
+            result = g.get_nWeek_low(query_params['symbol'],int(query_params['weeks']))
           else:
               result = {"error":"symbol and/or weeks are missing"}
         elif request_uri == "/nWeekHigh":
           if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
-            result = g.get_nWeek_high(query_params['symbol'][0],int(query_params['weeks'][0]))
+            result = g.get_nWeek_high(query_params['symbol'],int(query_params['weeks']))
           else:
               result = {"error":"symbol and/or weeks are missing"}
         elif request_uri == "/historicalData":
             if 'symbol' in query_params.keys() and "from" in query_params.keys() and "to" in query_params.keys():
-                result = g.get_historical_data(query_params['symbol'][0],query_params['from'][0],query_params['to'][0])
+                result = g.get_historical_data(query_params['symbol'],query_params['from'],query_params['to'])
             else:
                 result = {"error":"Either symbol or fromDate or toDate is missing"}
         elif request_uri == "/portfolio":
             if 'user_id' in query_params.keys():
-                result = g.get_portfolio(query_params['user_id'][0])
+                result = g.get_portfolio(query_params['user_id'])
             else:
                 result = {"error":"user_id is missing"}
 
