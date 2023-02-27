@@ -27,6 +27,7 @@ def get_cookie(cookie_url):
   cookies = dict(response.cookies)
   conn.close()
   return cookies
+#   return {}
 
 def get_stock_status(symbol):
     current_url = nse_url+"api/quote-equity?symbol="+symbol
@@ -116,41 +117,41 @@ def get_historical_data(symbol,from_,to_):
         result['data'].append(temp)
     return result
 
-def get_top_gainers():
-    current_url = nse1_url + "live_market/dynaContent/live_analysis/gainers/niftyGainers1.json"
-    cookies = get_cookie(nse1_url)
-    conn = requests.Session()
-    response = conn.get(current_url,headers=headers,cookies=cookies)
-    data = response.json()
-    result = {}
-    result['data'] = []
-    conn.close()
-    for i in data['data']:
-        temp = {}
-        temp['symbol'] = i['symbol']
-        temp['ltp'] = i['ltp']
-        temp['highPrice'] = i['highPrice']
-        temp['lowPrice'] = i['lowPrice']
-        result['data'].append(temp)
-    return result
+#def get_top_gainers():
+#    current_url = nse1_url + "live_market/dynaContent/live_analysis/gainers/niftyGainers1.json"
+#    cookies = get_cookie(nse1_url)
+#    conn = requests.Session()
+#    response = conn.get(current_url,headers=headers,cookies=cookies)
+#    data = response.json()
+#    result = {}
+#    result['data'] = []
+#    conn.close()
+#    for i in data['data']:
+#        temp = {}
+#        temp['symbol'] = i['symbol']
+#        temp['ltp'] = i['ltp']
+#        temp['highPrice'] = i['highPrice']
+#        temp['lowPrice'] = i['lowPrice']
+#        result['data'].append(temp)
+#    return result
 
-def get_top_losers():
-    current_url = nse1_url + "live_market/dynaContent/live_analysis/losers/niftyLosers1.json"
-    cookies = get_cookie(nse1_url)
-    conn = requests.Session()
-    response = conn.get(current_url,headers=headers,cookies=cookies)
-    data = response.json()
-    result = {}
-    result['data'] = []
-    conn.close()
-    for i in data['data']:
-        temp = {}
-        temp['symbol'] = i['symbol']
-        temp['ltp'] = i['ltp']
-        temp['highPrice'] = i['highPrice']
-        temp['lowPrice'] = i['lowPrice']
-        result['data'].append(temp)
-    return result
+#def get_top_losers():
+#    current_url = nse1_url + "live_market/dynaContent/live_analysis/losers/niftyLosers1.json"
+#    cookies = get_cookie(nse1_url)
+#    conn = requests.Session()
+#    response = conn.get(current_url,headers=headers,cookies=cookies)
+#    data = response.json()
+#    result = {}
+#    result['data'] = []
+#    conn.close()
+#    for i in data['data']:
+#        temp = {}
+#        temp['symbol'] = i['symbol']
+#        temp['ltp'] = i['ltp']
+#        temp['highPrice'] = i['highPrice']
+#        temp['lowPrice'] = i['lowPrice']
+#        result['data'].append(temp)
+#    return result
 
 def get_nWeek_low(symbol,weeks):
   to_ = str(date.today().strftime("%d-%m-%Y"))
@@ -183,39 +184,56 @@ def get_nWeek_high(symbol,weeks):
 
 def get_portfolio(user_id):
     data = firebase_client.get_portfolio(user_id)
+    user_data = firebase_client.get_userDetails(user_id)
     result = {}
-    result['portfolio'] = []
+    result['portfolio'] = {}
+    response = {}
+    response['portfolio'] = []
     stocksList = []
-    for k,i in data.items():
-        item = {}
-        item['symbol'] = i['stockSymbol']
-        item['avgCost'] = i['purchasedAt']
-        item['uid'] = i['uid']
-        stocksList.append(item)
-    gttValues = {}
-    numOfThreads = math.ceil(len(stocksList)/4)
-    stocksPerThread = math.ceil(len(stocksList)/numOfThreads)
-    i=0
-    threads = []
-    while i < numOfThreads:
-        lastIndex = min((i+1)*stocksPerThread,len(stocksList))
-        t = ThreadWithReturnValue( target= get_gtt_values,args = (stocksList[i*stocksPerThread:lastIndex],))
-        threads.append(t)
-        t.start()
-        gttValues = { **gttValues , **t.join()}
-        i = i + 1
+    isUpdateEligible = False
+    if  int(datetime.now().strftime("%s")) - int(user_data['lastUpdatedTimestamp']) > 10:
+        isUpdateEligible = True
+        for k,i in data.items():
+            item = {}
+            item['symbol'] = i['symbol']
+            item['avgCost'] = i['avgCost']
+            item['uid'] = i['uid']
+            stocksList.append(item)
+        gttValues = {}
+        numOfThreads = math.ceil(len(stocksList)/4)
+        stocksPerThread = math.ceil(len(stocksList)/numOfThreads)
+        i=0
+        threads = []
+        while i < numOfThreads:
+            lastIndex = min((i+1)*stocksPerThread,len(stocksList))
+            t = ThreadWithReturnValue( target= get_gtt_values,args = (stocksList[i*stocksPerThread:lastIndex],))
+            threads.append(t)
+            t.start()
+            gttValues = { **gttValues , **t.join()}
+            i = i + 1
+    else:
+        gttValues = {}
+        for k,i in data.items():
+            item = {}
+            item['ltp'] = i['ltp']
+            item['stopLoss'] = i['stopLoss']
+            item['target'] = i['target']
+            gttValues[i['uid']] = item
 #    print(gttValues)
     for k,i in data.items():
         trade = {}
-        trade['symbol'] = i['stockSymbol']
+        trade['symbol'] = i['symbol']
         trade['ltp'] = gttValues[i['uid']]['ltp']
         trade['stopLoss'] = gttValues[i['uid']]['stopLoss']
         trade['target'] = gttValues[i['uid']]['target']
         trade['numOfShares'] = i['numOfShares']
-        trade['avgCost'] = i['purchasedAt']
+        trade['avgCost'] = i['avgCost']
         trade['uid'] = i['uid']
-        result['portfolio'].append(trade)
-    return(result)
+        result['portfolio'][i['uid']] = trade
+        response['portfolio'].append(trade)
+    if isUpdateEligible:
+        firebase_client.update_portfolio(user_id,result)
+    return(response)
 
 class ThreadWithReturnValue(Thread):
 
@@ -237,7 +255,7 @@ def get_gtt_values(stocksList):
     for i in stocksList:
         result[i['uid']] = {}
         result[i['uid']]['stopLoss'] = get_nWeek_low(i['symbol'],10)['price']
-        result[i['uid']]['target'] = i['avgCost'] * 1.6
+        result[i['uid']]['target'] = round(i['avgCost'] * 1.6,2)
         result[i['uid']]['ltp'] = get_stock_status(i['symbol'])['ltp']
     return result
 
@@ -252,66 +270,65 @@ for k,v in args.items():
             j = urllib.parse.quote(j)
             query_params[k].append(j)
 print('Content-type: application/json\r\n\r\n') # the mime-type header.
-#import sys
-#old= sys.stdout
-#environ = open("/tmp/file","w")
-#sys.stdout = environ
-#cgi.print_environ()
-#environ.flush()
-#sys.stdout = old
-#environ.close()
-#envData = open("/tmp/file","r")
-#environ = envData.read()
-#envData.close()
-#request_uri = ""
-#for i in environ.split('\n'):
-#    if 'REQUEST_URI ' in i:
-#        request_uri = i.split("<DT> REQUEST_URI <DD> ")[1]
-#
-#request_uri = request_uri.split("nseData")[1].split("?")[0]
+import sys
+old= sys.stdout
+environ = open("/tmp/file","w")
+sys.stdout = environ
+cgi.print_environ()
+environ.flush()
+sys.stdout = old
+environ.close()
+envData = open("/tmp/file","r")
+environ = envData.read()
+envData.close()
+request_uri = "nseData/hello?"
+for i in environ.split('\n'):
+    if 'REQUEST_URI ' in i:
+        request_uri = i.split("<DT> REQUEST_URI <DD> ")[1]
 
+request_uri = request_uri.split("nseData")[1].split("?")[0]
 
-#if request_uri == "/topGainers":
-#    print(json.dumps(getTopChangers.get_top_gainers(),indent=1))
-#elif request_uri == "/topLosers":
-#    print(json.dumps(getTopChangers.get_top_losers(),indent=1))
-#elif request_uri == "/stockData":
-#    if 'symbol' in query_params.keys():
-#        print(json.dumps(get_stock_status(query_params['symbol'][0]),indent=1))
-#    else:
-#        print(json.dumps({"error":"symbol is missing"},indent=1))
-#elif request_uri == "/niftyData":
-#    print(json.dumps(get_nse_status(),indent=1))
-#elif request_uri == "/search":
-#    if 'symbol' in query_params.keys():
-#        print(json.dumps(search_stock(query_params['symbol'][0]),indent=1))
-#    else:
-#        print(json.dumps({"error":"symbol is missing"},indent=1))
-#elif request_uri == "/indexData":
-#    if 'index' in query_params.keys():
-#        print(json.dumps(get_index_stocks(query_params['index'][0]),indent=1))
-#    else:
-#        print(json.dumps({"error":"index is missing"},indent=1))
-#elif request_uri == "/nWeekLow":
-#  if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
-#    print(json.dumps(get_nWeek_low(query_params['symbol'][0],int(query_params['weeks'][0])),indent=1))
-#  else:
-#      print(json.dumps({"error":"symbol and/or weeks are missing"},indent=1))
-#elif request_uri == "/nWeekHigh":
-#  if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
-#    print(json.dumps(get_nWeek_high(query_params['symbol'][0],int(query_params['weeks'][0])),indent=1))
-#  else:
-#      print(json.dumps({"error":"symbol and/or weeks are missing"},indent=1))
-#elif request_uri == "/historicalData":
-#    if 'symbol' in query_params.keys() and "from" in query_params.keys() and "to" in query_params.keys():
-#        print(json.dumps(get_historical_data(query_params['symbol'][0],query_params['from'][0],query_params['to'][0]),indent=1))
-#    else:
-#        print(json.dumps({"error":"Either symbol or fromDate or toDate is missing"},indent=1))
-#elif request_uri == "/portfolio":
-#    if 'user_id' in query_params.keys():
-#        print(json.dumps(get_portfolio(query_params['user_id'][0]),indent=1))
-#    else:
-#        print(json.dumps({"error":"user_id is missing"},indent=1))
+if request_uri == "/topGainers":
+    print(json.dumps(getTopChangers.get_top_gainers(),indent=1))
+elif request_uri == "/topLosers":
+    print(json.dumps(getTopChangers.get_top_losers(),indent=1))
+elif request_uri == "/stockData":
+    if 'symbol' in query_params.keys():
+        print(json.dumps(get_stock_status(query_params['symbol'][0]),indent=1))
+    else:
+        print(json.dumps({"error":"symbol is missing"},indent=1))
+elif request_uri == "/niftyData":
+    print(json.dumps(get_nse_status(),indent=1))
+elif request_uri == "/search":
+    if 'symbol' in query_params.keys():
+        print(json.dumps(search_stock(query_params['symbol'][0]),indent=1))
+    else:
+        print(json.dumps({"error":"symbol is missing"},indent=1))
+elif request_uri == "/indexData":
+    if 'index' in query_params.keys():
+        print(json.dumps(get_index_stocks(query_params['index'][0]),indent=1))
+    else:
+        print(json.dumps({"error":"index is missing"},indent=1))
+elif request_uri == "/nWeekLow":
+  if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
+    print(json.dumps(get_nWeek_low(query_params['symbol'][0],int(query_params['weeks'][0])),indent=1))
+  else:
+      print(json.dumps({"error":"symbol and/or weeks are missing"},indent=1))
+elif request_uri == "/nWeekHigh":
+  if 'symbol' in query_params.keys() and 'weeks' in query_params.keys():
+    print(json.dumps(get_nWeek_high(query_params['symbol'][0],int(query_params['weeks'][0])),indent=1))
+  else:
+      print(json.dumps({"error":"symbol and/or weeks are missing"},indent=1))
+elif request_uri == "/historicalData":
+    if 'symbol' in query_params.keys() and "from" in query_params.keys() and "to" in query_params.keys():
+        print(json.dumps(get_historical_data(query_params['symbol'][0],query_params['from'][0],query_params['to'][0]),indent=1))
+    else:
+        print(json.dumps({"error":"Either symbol or fromDate or toDate is missing"},indent=1))
+elif request_uri == "/portfolio":
+    if 'user_id' in query_params.keys():
+        print(json.dumps(get_portfolio(query_params['user_id'][0]),indent=1))
+    else:
+        print(json.dumps({"error":"user_id is missing"},indent=1))
 
 #if 'query' in query_params.keys():
 #    q = query_params['query'][0]
