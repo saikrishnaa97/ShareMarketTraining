@@ -194,13 +194,14 @@ def get_portfolio(user_id):
     if  int(datetime.now().strftime("%s")) - int(user_data['lastUpdatedTimestamp']) > 10:
         isUpdateEligible = True
         for k,i in data.items():
+          if i['status'] == "HOLDING":
             item = {}
             item['symbol'] = i['symbol']
             item['avgCost'] = i['avgCost']
             item['uid'] = i['uid']
             stocksList.append(item)
         gttValues = {}
-        numOfThreads = math.ceil(len(stocksList)/4)
+        numOfThreads = math.ceil(len(stocksList)/2)
         stocksPerThread = math.ceil(len(stocksList)/numOfThreads)
         i=0
         threads = []
@@ -223,12 +224,18 @@ def get_portfolio(user_id):
     for k,i in data.items():
         trade = {}
         trade['symbol'] = i['symbol']
-        trade['ltp'] = gttValues[i['uid']]['ltp']
-        trade['stopLoss'] = gttValues[i['uid']]['stopLoss']
-        trade['target'] = gttValues[i['uid']]['target']
+        if i['status'] == "HOLDING":
+           trade['ltp'] = gttValues[i['uid']]['ltp']
+           trade['stopLoss'] = gttValues[i['uid']]['stopLoss']
+           trade['target'] = gttValues[i['uid']]['target']
+        else:
+            trade['ltp'] = i['ltp']
+            trade['stopLoss'] = i['stopLoss']
+            trade['target'] = i['target']
         trade['numOfShares'] = i['numOfShares']
         trade['avgCost'] = i['avgCost']
         trade['uid'] = i['uid']
+        trade['status'] = i['status']
         result['portfolio'][i['uid']] = trade
         response['portfolio'].append(trade)
     if isUpdateEligible:
@@ -254,9 +261,16 @@ def get_gtt_values(stocksList):
     result = {}
     for i in stocksList:
         result[i['uid']] = {}
-        result[i['uid']]['stopLoss'] = get_nWeek_low(i['symbol'],10)['price']
+
+#        stopLoss = ThreadWithReturnValue( target= get_nWeek_low,args = (i['symbol'],10,))
+#        ltp = ThreadWithReturnValue( target= get_stock_status,args = (i['symbol'],))
+
+        stopLoss = get_nWeek_low(i['symbol'],10)
+        ltp = get_stock_status(i['symbol'])
+
+        result[i['uid']]['stopLoss'] = stopLoss['price']
         result[i['uid']]['target'] = round(i['avgCost'] * 1.6,2)
-        result[i['uid']]['ltp'] = get_stock_status(i['symbol'])['ltp']
+        result[i['uid']]['ltp'] = ltp['ltp']
     return result
 
 
