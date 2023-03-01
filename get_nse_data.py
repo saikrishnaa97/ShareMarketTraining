@@ -11,6 +11,8 @@ import json
 from threading import Thread
 import math
 from datetime import datetime
+from datetime import time
+import pytz
 
 nse_url = "https://www.nseindia.com/"
 nse1_url = "https://www1.nseindia.com/"
@@ -191,7 +193,15 @@ def get_portfolio(user_id):
     response['portfolio'] = []
     stocksList = []
     isUpdateEligible = False
-    if  int(datetime.now().strftime("%s")) - int(user_data['lastUpdatedTimestamp']) > 10:
+    IND_TZ = pytz.timezone("Asia/Kolkata")
+    opentime = time(9,30,0)
+    closetime = time(15,30,0)
+    curDate = datetime.now(IND_TZ)
+    if curDate.weekday() > 0 and curDate.weekday() < 6:
+        if curDate.time() > opentime and curDate.time() < closetime:
+            isUpdateEligible = True
+
+    if  isUpdateEligible and int(datetime.now().strftime("%s")) - int(user_data['lastUpdatedTimestamp']) > 10:
         isUpdateEligible = True
         for k,i in data.items():
           if i['status'] == "HOLDING":
@@ -213,6 +223,7 @@ def get_portfolio(user_id):
             gttValues = { **gttValues , **t.join()}
             i = i + 1
     else:
+        isUpdateEligible = False
         gttValues = {}
         for k,i in data.items():
             item = {}
