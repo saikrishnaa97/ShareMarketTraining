@@ -39,7 +39,7 @@ def get_data():
       if 'topGainers' in i:
         result = i.split('window.headerData = ')[1]
         result = result.split('\\n      var checkDownloadFile')[0]
-    jsonData = json.loads(result)
+    jsonData = json.loads(result[:-2])
     return jsonData
 
 def get_top_gainers():
