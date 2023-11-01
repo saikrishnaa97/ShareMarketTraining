@@ -51,6 +51,7 @@ def get_nse_status():
     response = conn.get(current_url,headers=headers,cookies=cookies)
     data = response.json()
     result = {}
+    #TODO the url to be checked is this "https://www.nseindia.com/api/marketStatus"
     conn.close()
     for i in data['data']:
         if i['name'] == "NIFTY 50":
