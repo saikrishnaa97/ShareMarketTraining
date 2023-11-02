@@ -45,18 +45,16 @@ def get_stock_status(symbol):
     return result
 
 def get_nse_status():
-    current_url = nse1_url+"homepage/Indices1.json"
+    current_url = nse_url+"api/marketStatus"
     cookies = get_cookie(nse_url)
     conn = requests.Session()
     response = conn.get(current_url,headers=headers,cookies=cookies)
     data = response.json()
     result = {}
-    #TODO the url to be checked is this "https://www.nseindia.com/api/marketStatus"
     conn.close()
-    for i in data['data']:
-        if i['name'] == "NIFTY 50":
+    for i in data['marketState']:
+        if i['market'] == "Capital Market":
             result = i
-            result.pop('imgFileName')
             return result
     return result
 
