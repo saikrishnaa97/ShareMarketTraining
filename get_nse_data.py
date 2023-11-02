@@ -54,7 +54,10 @@ def get_nse_status():
     conn.close()
     for i in data['marketState']:
         if i['market'] == "Capital Market":
-            result = i
+            result['change'] = i['variation']
+            result['lastPrice'] = i['last']
+            result['name'] = i['index']
+            result['pChange'] = i['percentChange']
             return result
     return result
 
