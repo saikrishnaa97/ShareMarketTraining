@@ -208,7 +208,7 @@ def get_portfolio(user_id):
         for k,i in data.items():
           if i['status'] == "HOLDING":
             item = {}
-            item['symbol'] = i['symbol']
+            item['symbol'] = urllib.parse.unquote(i['symbol'])
             item['avgCost'] = i['avgCost']
             item['uid'] = i['uid']
             stocksList.append(item)
@@ -279,7 +279,7 @@ def get_gtt_values(stocksList):
 #        ltp = ThreadWithReturnValue( target= get_stock_status,args = (i['symbol'],))
 
         stopLoss = get_nWeek_low(i['symbol'],10)
-        ltp = get_stock_status(i['symbol'])
+        ltp = get_stock_status(urllib.parse.quote_plus(i['symbol']))
 
         result[i['uid']]['stopLoss'] = stopLoss['price']
         result[i['uid']]['target'] = round(i['avgCost'] * 1.6,2)
