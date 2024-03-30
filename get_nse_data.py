@@ -356,7 +356,8 @@ elif request_uri == "/portfolio":
         print(json.dumps(get_portfolio(query_params['user_id'][0]),indent=1))
     else:
         print(json.dumps({"error":"user_id is missing"},indent=1))
-
+elif request_uri == "/health":
+    print("I am healthy.")
 #if 'query' in query_params.keys():
 #    q = query_params['query'][0]
 #    elif q == "indexData":
