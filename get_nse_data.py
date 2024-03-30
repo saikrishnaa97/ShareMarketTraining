@@ -41,6 +41,11 @@ def get_stock_status(symbol):
     result['symbol'] = urllib.parse.unquote(symbol)
     result['name'] = data['info']['companyName']
     result['ltp'] = data['priceInfo']['lastPrice']
+    result['open'] = data['priceInfo']['open']
+    result['close'] = data['priceInfo']['close']
+    result['pChange'] = round(data['priceInfo']['pChange'],2)
+    result['change'] = round(data['priceInfo']['change'],2)
+    result['prevClose'] = data['priceInfo']['previousClose']
     conn.close()
     return result
 
