@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import os
 import urllib.parse
 import requests
 import cgi
@@ -108,10 +109,15 @@ def get_gtt_values(stocksList):
         result[i['uid']] = {}
         stopLoss = get_nWeek_low(i['symbol'],10)
         ltp = get_stock_status(urllib.parse.quote_plus(i['symbol']))
+
         result[i['uid']]['stopLoss'] = stopLoss['price']
         result[i['uid']]['target'] = round(i['avgCost'] * 1.6,2)
         result[i['uid']]['ltp'] = ltp['ltp']
     return result
+
+def print_success_resp(resp):
+    print('Content-type: application/json\r\n\r\n')
+    print(resp)
 
 args = cgi.parse()
 query_params = {}
@@ -122,25 +128,39 @@ for k,v in args.items():
         for j in v:
             j = urllib.parse.quote(j)
             query_params[k].append(j)
-print('Content-type: application/json\r\n\r\n') # the mime-type header.
+#print('Content-type: application/json\r\n\r\n') # the mime-type header.
 import sys
-old= sys.stdout
-environ = open("/tmp/file","w")
-sys.stdout = environ
-cgi.print_environ()
-environ.flush()
-sys.stdout = old
-environ.close()
-envData = open("/tmp/file","r")
-environ = envData.read()
-envData.close()
+#old= sys.stdout
+#environ = open("/tmp/file","w")
+#sys.stdout = environ
+#cgi.print_environ()
+#environ.flush()
+#sys.stdout = old
+#environ.close()
+#envData = open("/tmp/file","r")
+#environ = envData.read()
+#envData.close()
 request_uri = "nseData/hello?"
-for i in environ.split('\n'):
-    if 'REQUEST_URI ' in i:
-        request_uri = i.split("<DT> REQUEST_URI <DD> ")[1]
+#for i in environ.split('\n'):
+if 'REQUEST_URI' in os.environ.keys():
+    request_uri = os.environ['REQUEST_URI']
+if 'REQUEST_METHOD' in os.environ.keys():
+    request_method = os.environ['REQUEST_METHOD']
+#        request_uri = i.split("<DT> REQUEST_URI <DD> ")[1]
 request_uri = request_uri.split("portfolio")[1].split("?")[0]
 if request_uri == "/holdings":
     if 'user_id' in query_params.keys():
-        print(json.dumps(get_portfolio(query_params['user_id'][0]),indent=1))
+        print_success_resp(json.dumps(get_portfolio(query_params['user_id'][0]),indent=1))
     else:
         print(json.dumps({"error":"user_id is missing"},indent=1))
+elif request_uri == "/buy":
+    if request_method != "POST":
+        resp = {"status":"Method Not Allowed"}
+#        print(resp)
+        print("Status: 415 Method Not Allowed")
+        print('Content-type: application/json\r\n\r\n')
+    else:
+        content_length = int(os.environ['CONTENT_LENGTH'])
+        req_body= sys.stdin.read(content_length)
+        payload = json.loads(req_body)
+        print_success_resp(payload['symbol'])
