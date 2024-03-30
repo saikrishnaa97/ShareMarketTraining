@@ -1,5 +1,6 @@
 #!/usr/bin/python
 #print('Content-type: application/json\r\n\r\n') # the mime-type header.
+import os
 import requests
 import cgi
 from datetime import datetime, timedelta, date
@@ -303,20 +304,20 @@ for k,v in args.items():
             query_params[k].append(j)
 print('Content-type: application/json\r\n\r\n') # the mime-type header.
 import sys
-old= sys.stdout
-environ = open("/tmp/file","w")
-sys.stdout = environ
-cgi.print_environ()
-environ.flush()
-sys.stdout = old
-environ.close()
-envData = open("/tmp/file","r")
-environ = envData.read()
-envData.close()
+#old= sys.stdout
+#environ = open("/tmp/file","w")
+#sys.stdout = environ
+#cgi.print_environ()
+#environ.flush()
+#sys.stdout = old
+#environ.close()
+#envData = open("/tmp/file","r")
+#environ = envData.read()
+#envData.close()
 request_uri = "nseData/hello?"
-for i in environ.split('\n'):
-    if 'REQUEST_URI ' in i:
-        request_uri = i.split("<DT> REQUEST_URI <DD> ")[1]
+#for i in environ.split('\n'):
+if 'REQUEST_URI' in os.environ.keys():
+        request_uri = os.environ["REQUEST_URI"]
 
 request_uri = request_uri.split("nseData")[1].split("?")[0]
 
