@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, date
 import calendar
 import firebase_client
 import urllib.parse
-import getTopChangers
+import nse_data_helper
 import json
 from threading import Thread
 import math
@@ -115,6 +115,11 @@ def get_gtt_values(stocksList):
         result[i['uid']]['ltp'] = ltp['ltp']
     return result
 
+def buyOrSell(data):
+    data['ltp'] = nse_data_helper.get_stock_status(data['symbol'])['ltp']
+    data['avgCost'] = data['ltp'] * data['numOfShares']
+    print_success_resp(data)
+
 def print_success_resp(resp):
     print('Content-type: application/json\r\n\r\n')
     print(resp)
@@ -163,4 +168,4 @@ elif request_uri == "/buy":
         content_length = int(os.environ['CONTENT_LENGTH'])
         req_body= sys.stdin.read(content_length)
         payload = json.loads(req_body)
-        print_success_resp(payload['symbol'])
+        buyOrSell(payload)
