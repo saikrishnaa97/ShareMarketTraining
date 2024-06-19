@@ -3,6 +3,7 @@
 import requests, json
 from datetime import date, timedelta
 import cgi
+import urllib.parse
 
 def get_scanner_data(args):
 #  print('Content-Type:text/html\r\n\r\n')
@@ -15,6 +16,17 @@ def get_scanner_data(args):
   except Exception as e:
       print(e)
       return e
+  query_params = {}
+  for k,v in args.items():
+    k = urllib.parse.quote(k)
+    query_params[k] = []
+    if type(v) is list:
+        for j in v:
+            j = urllib.parse.quote(j)
+            query_params[k].append(j)
+  l = "NIFTY 100"
+  if 'list' in query_params.keys():
+      l = query_params['list'][0]
 
   cookies = dict(response.cookies)
   response = conn.get(url+"api/equity-stockIndices?index=NIFTY 100",headers=headers,cookies=cookies)
