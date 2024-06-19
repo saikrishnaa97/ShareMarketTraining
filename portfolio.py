@@ -107,8 +107,8 @@ def get_gtt_values(stocksList):
     result = {}
     for i in stocksList:
         result[i['uid']] = {}
-        stopLoss = get_nWeek_low(i['symbol'],10)
-        ltp = get_stock_status(urllib.parse.quote_plus(i['symbol']))
+        stopLoss = nse_data_helper.get_nWeek_low(i['symbol'],10)
+        ltp = nse_data_helper.get_stock_status(urllib.parse.quote_plus(i['symbol']))
 
         result[i['uid']]['stopLoss'] = stopLoss['price']
         result[i['uid']]['target'] = round(i['avgCost'] * 1.6,2)
