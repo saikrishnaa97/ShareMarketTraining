@@ -46,6 +46,7 @@ def get_scanner_data(args):
        a['ltp']  = lastPrice
        a['name'] = name
        result['data'].append(a)
+  result['count'] = len(result['data'])
   print(json.dumps(result,indent=1))
   if 'stock' in args.keys():
     stockUrl = "https://www.nseindia.com/api/quote-equity?symbol="+args['stock']                                                                                        [0]
